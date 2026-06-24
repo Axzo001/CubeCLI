@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Ask a question / General Discussion
+    url: https://github.com/Axzo001/CubeCLI/discussions
+    about: Use Discussions for questions, ideas, and general chat.
+  - name: 📖 Read the docs
+    url: https://github.com/Axzo001/CubeCLI#readme
+    about: Check the README for usage, keyboard shortcuts, and more.
