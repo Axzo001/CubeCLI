@@ -1,0 +1,180 @@
+/* ═══════════════════════════════════════════════════════════════════
+   CubeCLI — Textual CSS (TCSS)
+   Dark theme, cyan/teal accents, coloured timer states
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Global ──────────────────────────────────────────────────────── */
+Screen {
+    background: #0d1117;
+    color: #e6edf3;
+}
+
+/* ── App header strip ────────────────────────────────────────────── */
+#app-header {
+    height: 1;
+    background: #161b22;
+    color: #58a6ff;
+    text-style: bold;
+    padding: 0 2;
+    border-bottom: solid #30363d;
+}
+
+/* ── Scramble section ────────────────────────────────────────────── */
+#scramble-section {
+    height: 5;
+    background: #161b22;
+    border: solid #30363d;
+    margin: 1 1 0 1;
+    padding: 0 2;
+    align: center middle;
+}
+
+#scramble-header {
+    height: 1;
+    color: #8b949e;
+    text-style: italic;
+}
+
+#scramble-text {
+    height: 2;
+    color: #e6edf3;
+    text-align: center;
+    text-style: bold;
+}
+
+/* ── Timer section ───────────────────────────────────────────────── */
+#timer-section {
+    height: 1fr;
+    align: center middle;
+    background: #0d1117;
+}
+
+#timer-display {
+    height: auto;
+    width: auto;
+    text-align: center;
+    color: #e6edf3;
+    text-style: bold;
+    padding: 1 4;
+}
+
+#timer-display.idle    { color: #e6edf3; }
+#timer-display.holding { color: #d29922; }
+#timer-display.ready   { color: #3fb950; }
+#timer-display.running { color: #3fb950; }
+#timer-display.stopped { color: #58a6ff; }
+
+#status-label {
+    height: 1;
+    text-align: center;
+    color: #8b949e;
+    margin-top: 1;
+}
+
+/* ── Bottom panel ────────────────────────────────────────────────── */
+#bottom-section {
+    height: 12;
+    layout: horizontal;
+    margin: 0 1 1 1;
+    border: solid #30363d;
+    background: #161b22;
+}
+
+/* ── Stats panel (left) ──────────────────────────────────────────── */
+#stats-panel {
+    width: 28;
+    height: 100%;
+    border-right: solid #30363d;
+    padding: 1 2;
+}
+
+#stats-title {
+    height: 1;
+    color: #58a6ff;
+    text-style: bold;
+}
+
+.stat-row {
+    height: 1;
+    layout: horizontal;
+}
+
+.stat-label {
+    width: 10;
+    color: #8b949e;
+}
+
+.stat-value {
+    width: 1fr;
+    color: #e6edf3;
+    text-style: bold;
+}
+
+.stat-value.pb {
+    color: #3fb950;
+}
+
+/* ── Solve list (right) ──────────────────────────────────────────── */
+#solve-list-panel {
+    width: 1fr;
+    height: 100%;
+    padding: 1 2;
+}
+
+#solve-list-title {
+    height: 1;
+    color: #58a6ff;
+    text-style: bold;
+}
+
+.solve-item {
+    height: 1;
+    layout: horizontal;
+    color: #e6edf3;
+}
+
+.solve-num {
+    width: 5;
+    color: #8b949e;
+}
+
+.solve-time {
+    width: 10;
+    text-style: bold;
+}
+
+.solve-time.dnf   { color: #f85149; }
+.solve-time.plus2 { color: #d29922; }
+.solve-time.normal { color: #e6edf3; }
+
+.solve-scramble {
+    width: 1fr;
+    color: #6e7681;
+    overflow: hidden;
+}
+
+/* ── Sparkline bar ───────────────────────────────────────────────── */
+#sparkline-bar {
+    height: 1;
+    background: #0d1117;
+    color: #238636;
+    text-align: center;
+    margin: 0 1;
+}
+
+/* ── Key hints footer ────────────────────────────────────────────── */
+#key-hints {
+    height: 1;
+    background: #161b22;
+    color: #6e7681;
+    text-align: center;
+    border-top: solid #30363d;
+    padding: 0 2;
+}
+
+/* ── Notification toast ──────────────────────────────────────────── */
+Toast {
+    background: #1f2937;
+    color: #e6edf3;
+    border: solid #58a6ff;
+}
