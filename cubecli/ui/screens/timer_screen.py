@@ -40,6 +40,7 @@ from cubecli.core.timer import PrecisionTimer, TimerState
 from cubecli.data import db
 from cubecli.data.models import Session, Solve
 from cubecli.ui.screens.stats_screen import StatsScreen
+from cubecli.ui.screens.train_screen import TrainScreen
 from cubecli.ui.widgets.cube_preview import CubePreview
 from cubecli.ui.widgets.scramble_panel import ScramblePanel
 from cubecli.ui.widgets.solve_list import SolveList
@@ -130,6 +131,7 @@ class TimerScreen(Screen[None]):
             "[bold]c[/bold] copy  "
             "[bold]v[/bold] preview  "
             "[bold]s/g[/bold] stats  "
+            "[bold]T[/bold] train  "
             "[bold]P[/bold] puzzle  "
             "[bold]q[/bold] quit"
             "[/dim]",
@@ -160,6 +162,8 @@ class TimerScreen(Screen[None]):
                 assert self._session is not None
                 assert self._session.id is not None
                 self.app.push_screen(StatsScreen(self.cfg, self._session.id))
+            case "T" if self._state not in (TimerState.RUNNING,):
+                self.app.push_screen(TrainScreen(self.cfg))
             case "P":
                 self._cycle_puzzle()
             case "q" | "escape":
