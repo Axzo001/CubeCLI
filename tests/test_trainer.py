@@ -15,7 +15,7 @@ from cubecli.training.trainer import (
 )
 
 
-def test_invert_move():
+def test_invert_move() -> None:
     assert invert_move("R") == "R'"
     assert invert_move("R'") == "R"
     assert invert_move("R2") == "R2"
@@ -25,14 +25,14 @@ def test_invert_move():
     assert invert_move("") == ""
 
 
-def test_invert_algorithm():
+def test_invert_algorithm() -> None:
     assert invert_algorithm("R U R' U'") == "U R U' R'"
     assert invert_algorithm("F R U R' U' F'") == "F U R U' R' F'"
     assert invert_algorithm("(R U R' U') (R' F R F')") == "F R' F' R U R U' R'"
     assert invert_algorithm("") == ""
 
 
-def test_get_setup_scramble():
+def test_get_setup_scramble() -> None:
     scramble = get_setup_scramble("R U R' U'")
     assert "U R U' R'" in scramble
     # Pre and post-rotations should be valid U-layer moves
@@ -41,7 +41,7 @@ def test_get_setup_scramble():
         assert part.replace("'", "").replace("2", "") in ("U", "R")
 
 
-def test_load_cases():
+def test_load_cases() -> None:
     oll_cases = load_cases("oll")
     assert len(oll_cases) == 57
     assert oll_cases[0].id == "1"
@@ -55,7 +55,7 @@ def test_load_cases():
         load_cases("invalid")
 
 
-def test_select_next_case():
+def test_select_next_case() -> None:
     cases = [
         Case(id="1", name="Case 1", algorithm="R U R'", diagram="", group="OLL"),
         Case(id="2", name="Case 2", algorithm="L U L'", diagram="", group="OLL"),
