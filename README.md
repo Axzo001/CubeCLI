@@ -198,39 +198,40 @@ CubeCLI/
 │   ├── core/
 │   │   ├── timer.py          # Timer logic, precision timing
 │   │   ├── scramble.py       # Scramble generation (pyTwistyScrambler)
-│   │   ├── cube.py           # 3x3 state simulator (for preview)
+│   │   ├── cube_sim.py       # 3x3 Rubik's Cube state simulator
 │   │   └── stats.py          # Statistics engine (Ao5, Ao12, PB, etc.)
 │   ├── ui/
 │   │   ├── app.py            # Main Textual app
-│   │   ├── timer_screen.py   # Main timer TUI screen
-│   │   ├── stats_screen.py   # Statistics dashboard screen
-│   │   ├── graph_screen.py   # Chart/graph screen
-│   │   ├── session_screen.py # Session manager screen
-│   │   ├── help_screen.py    # Help overlay
+│   │   ├── app.tcss          # Global Textual stylesheets
+│   │   ├── screens/
+│   │   │   ├── timer_screen.py   # Main timer TUI screen
+│   │   │   ├── stats_screen.py   # Statistics dashboard screen
+│   │   │   ├── train_screen.py   # OLL/PLL training screen
+│   │   │   └── case_picker.py    # Training case picker modal screen
 │   │   └── widgets/
 │   │       ├── cube_preview.py   # ANSI cube net widget
 │   │       ├── timer_display.py  # Big digit timer widget
-│   │       ├── sparkline.py      # Inline sparkline widget
+│   │       ├── scramble_panel.py # Scramble text rendering panel
+│   │       ├── solve_list.py     # Solve history list widget
 │   │       └── stats_panel.py    # Stats sidebar widget
 │   ├── training/
-│   │   ├── trainer.py        # Training mode logic
-│   │   ├── cases.py          # OLL/PLL case loader
+│   │   ├── trainer.py        # Training mode logic (inversion, weights)
 │   │   └── data/
-│   │       ├── oll.json      # 57 OLL cases with algorithms
-│   │       ├── pll.json      # 21 PLL cases with algorithms
-│   │       └── f2l.json      # 41 F2L cases
+│   │       ├── oll.json      # 57 OLL cases with algorithms & diagrams
+│   │       └── pll.json      # 21 PLL cases with algorithms & diagrams
 │   ├── data/
-│   │   ├── db.py             # SQLite database interface
-│   │   ├── session.py        # Session model + CRUD
-│   │   ├── solve.py          # Solve model + CRUD
-│   │   └── importer.py       # Import from csTimer, TwistyTimer, etc.
+│   │   ├── db.py             # SQLite database interface & CRUD
+│   │   └── models.py         # Solve and Session data models
 │   ├── config.py             # Config loader (~/.cubecli/config.json)
 │   └── __init__.py
 ├── tests/
 │   ├── test_timer.py
 │   ├── test_scramble.py
 │   ├── test_stats.py
-│   └── test_cube.py
+│   ├── test_cube_sim.py
+│   ├── test_package.py
+│   ├── test_trainer.py
+│   └── test_ui.py
 ├── assets/
 │   └── preview.png
 ├── docs/
@@ -261,10 +262,9 @@ CubeCLI/
 | Styling/Rendering | [Rich](https://github.com/Textualize/rich) | Panels, tables, sparklines, markup |
 | Scramble Generation | [pyTwistyScrambler](https://github.com/euphwes/pyTwistyScrambler) | csTimer-source, WCA-equivalent, all puzzles |
 | Charts | [textual-plot](https://github.com/davidfokkema/textual-plot) | Braille-resolution line/bar charts in TUI |
-| Cube Solving | [kociemba](https://github.com/hkociemba/RubiksCube-TwophaseSolver) | Solve hint + state validation |
 | Storage | SQLite (stdlib) | Fast queries, no server needed |
 | Clipboard | [pyperclip](https://github.com/asweigart/pyperclip) | Cross-platform scramble copy |
-| Audio | [beepy](https://github.com/MaxStrange/beepy) | Inspection beeps, metronome |
+| Audio (Planned) | [beepy](https://github.com/MaxStrange/beepy) | Inspection beeps, metronome |
 
 ---
 
@@ -295,8 +295,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for a detailed guide on:
 - [x] Project scaffold & GitHub setup
 - [x] Phase 1: Core timer + scrambles + basic stats
 - [x] Phase 2: ANSI cube color preview
-- [/] Phase 3: Advanced stats + braille charts
-- [ ] Phase 4: OLL/PLL training mode
+- [x] Phase 3: Advanced stats + braille charts
+- [x] Phase 4: OLL/PLL training mode
 - [ ] Phase 5: Multi-puzzle + BLD mode + metronome
 - [ ] Phase 6: Import/export + theme system
 - [ ] Phase 7: Smart cube Bluetooth (GAN/MoYu)
