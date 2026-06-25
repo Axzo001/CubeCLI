@@ -82,11 +82,11 @@ cubecli = "cubecli.__main__:main"
 [tool.hatch.build.targets.wheel]
 packages = ["cubecli"]
 
-# ─── Ruff ─────────────────────────────────────────────────────────────────────
-
 [tool.ruff]
 target-version = "py311"
 line-length = 100
+
+[tool.ruff.lint]
 select = [
   "E",   # pycodestyle errors
   "W",   # pycodestyle warnings
@@ -100,7 +100,7 @@ ignore = [
   "E501",  # line too long (handled by formatter)
 ]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["cubecli"]
 
 # ─── Black ────────────────────────────────────────────────────────────────────
