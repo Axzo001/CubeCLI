@@ -293,9 +293,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for a detailed guide on:
 ## 🗺️ Roadmap
 
 - [x] Project scaffold & GitHub setup
-- [ ] Phase 1: Core timer + scrambles + basic stats
-- [ ] Phase 2: ANSI cube color preview
-- [ ] Phase 3: Advanced stats + braille charts
+- [x] Phase 1: Core timer + scrambles + basic stats
+- [x] Phase 2: ANSI cube color preview
+- [/] Phase 3: Advanced stats + braille charts
 - [ ] Phase 4: OLL/PLL training mode
 - [ ] Phase 5: Multi-puzzle + BLD mode + metronome
 - [ ] Phase 6: Import/export + theme system

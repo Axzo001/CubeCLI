@@ -102,3 +102,51 @@ def session_stddev(times: list[Time]) -> float | None:
 def sub_x_count(times: list[Time], threshold_ms: int) -> int:
     """Count how many non-DNF solves are strictly under ``threshold_ms``."""
     return sum(1 for t in times if t is not None and t < threshold_ms)
+
+
+def get_rolling_averages(times: list[Time], window: int, trim: int) -> list[Time]:
+    """Calculate rolling WCA-style averages across a list of times."""
+    averages: list[Time] = []
+    for i in range(len(times)):
+        if i < window - 1:
+            averages.append(None)
+        else:
+            averages.append(_trim_average(times[i - window + 1 : i + 1], trim))
+    return averages
+
+
+def get_rolling_mo3(times: list[Time]) -> list[Time]:
+    """Mean of 3 (no trimming) rolling average."""
+    averages: list[Time] = []
+    for i in range(len(times)):
+        if i < 2:
+            averages.append(None)
+        else:
+            w = times[i - 2 : i + 1]
+            if None in w:
+                averages.append(None)
+            else:
+                averages.append(int(statistics.mean(t for t in w if t is not None)))
+    return averages
+
+
+def get_rolling_ao5(times: list[Time]) -> list[Time]:
+    return get_rolling_averages(times, 5, 1)
+
+
+def get_rolling_ao12(times: list[Time]) -> list[Time]:
+    return get_rolling_averages(times, 12, 1)
+
+
+def get_rolling_ao50(times: list[Time]) -> list[Time]:
+    return get_rolling_averages(times, 50, 3)
+
+
+def get_rolling_ao100(times: list[Time]) -> list[Time]:
+    return get_rolling_averages(times, 100, 5)
+
+
+def best_rolling_average(averages: list[Time]) -> Time:
+    """Return the minimum (best) value in a rolling average list."""
+    valid = [a for a in averages if a is not None]
+    return min(valid) if valid else None

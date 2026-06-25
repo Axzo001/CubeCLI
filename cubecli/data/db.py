@@ -213,6 +213,16 @@ def get_alltime_best(puzzle: str) -> int | None:
     return row["best"] if row and row["best"] is not None else None
 
 
+def get_all_solves_for_puzzle(puzzle: str) -> list[Solve]:
+    """Return all solves for a puzzle, oldest first."""
+    with _connect() as conn:
+        rows = conn.execute(
+            "SELECT * FROM solves WHERE puzzle=? ORDER BY timestamp ASC",
+            (puzzle,),
+        ).fetchall()
+    return [_row_to_solve(r) for r in rows]
+
+
 # ── Internal helpers ──────────────────────────────────────────────────────────
 
 

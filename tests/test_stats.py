@@ -5,10 +5,13 @@ from __future__ import annotations
 import pytest
 
 from cubecli.core.stats import (
+    best_rolling_average,
     best_time,
     calculate_ao5,
     calculate_ao12,
     calculate_mo3,
+    get_rolling_ao5,
+    get_rolling_mo3,
     session_mean,
     session_stddev,
     sub_x_count,
@@ -123,3 +126,26 @@ def test_stddev_needs_two():
 def test_stddev_consistent_times():
     # All same → stdev = 0
     assert session_stddev([10_000, 10_000, 10_000]) == pytest.approx(0, abs=1)
+
+
+# ── Rolling Stats ─────────────────────────────────────────────────────────────
+
+
+def test_rolling_mo3():
+    times = [10_000, 12_000, 11_000, None, 13_000]
+    expected = [None, None, 11_000, None, None]
+    assert get_rolling_mo3(times) == expected
+
+
+def test_rolling_ao5():
+    times = [9_000, 10_000, 11_000, 12_000, 13_000, 14_000]
+    # Ao5 at index 4 (first 5 elements): remove 9 and 13 -> mean(10,11,12) = 11
+    # Ao5 at index 5 (last 5 elements): remove 10 and 14 -> mean(11,12,13) = 12
+    expected = [None, None, None, None, 11_000, 12_000]
+    assert get_rolling_ao5(times) == expected
+
+
+def test_best_rolling_average():
+    averages = [None, None, None, None, 11_000, 10_500, 12_000]
+    assert best_rolling_average(averages) == 10_500
+    assert best_rolling_average([None, None]) is None
