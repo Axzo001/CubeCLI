@@ -18,3 +18,10 @@ def test_instantiate_case_picker() -> None:
     picker = CasePicker("pll", ["Aa", "Ab"])
     assert picker.mode == "pll"
     assert "Aa" in picker.selected_ids
+
+
+def test_instantiate_puzzle_picker() -> None:
+    from cubecli.ui.screens.puzzle_picker import PuzzlePicker
+
+    picker = PuzzlePicker("3x3")
+    assert picker.current_puzzle == "3x3"

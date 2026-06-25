@@ -93,11 +93,33 @@ class SolveList(Widget):
             else:
                 time_markup = f"[bold]{time_str}[/bold]"
 
+            # Parse split times if present (BLD or CFOP splits)
+            split_markup = ""
+            if "memo:" in solve.notes and "exec:" in solve.notes:
+                try:
+                    parts = solve.notes.split("|")
+                    memo_ms = int(parts[0].split(":")[1])
+                    exec_ms = int(parts[1].split(":")[1])
+                    split_markup = (
+                        f" [cyan][dim]({memo_ms / 1000:.2f}+{exec_ms / 1000:.2f})[/dim][/cyan]"
+                    )
+                except Exception:
+                    pass
+            elif solve.notes.startswith("splits:"):
+                try:
+                    parts = solve.notes.replace("splits:", "").split("|")
+                    split_sec = [f"{int(p) / 1000:.1f}" for p in parts]
+                    split_markup = f" [magenta][dim]({'/'.join(split_sec)})[/dim][/magenta]"
+                except Exception:
+                    pass
+
             # Truncate scramble for display
             scr = solve.scramble
             scr_short = scr[:40] + "…" if len(scr) > 40 else scr
 
-            lbl.update(f" [dim]#{num:>3}[/dim]  {time_markup}  [dim]{scr_short}[/dim]")
+            lbl.update(
+                f" [dim]#{num:>3}[/dim]  {time_markup}{split_markup}  [dim]{scr_short}[/dim]"
+            )
 
     def _clear(self) -> None:
         """Reset all rows to empty."""

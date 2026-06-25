@@ -402,3 +402,68 @@ CasePicker {
     background: transparent;
     border: none;
 }
+
+/* ── Puzzle Picker Layout ───────────────────────────────────────── */
+PuzzlePicker {
+    background: #0d1117;
+    color: #e6edf3;
+}
+
+#puzzle-picker-container {
+    height: 1fr;
+    margin: 1 10;
+    border: solid #30363d;
+    background: #161b22;
+    padding: 1;
+}
+
+#puzzle-option-list {
+    height: 1fr;
+    background: transparent;
+    border: none;
+}
+
+/* ── FMC Layout ─────────────────────────────────────────────────── */
+#fmc-section {
+    display: none; /* hidden by default */
+    height: 1fr;
+    align: center middle;
+    background: #0d1117;
+    margin: 1 10;
+    padding: 2;
+    border: solid #30363d;
+}
+
+#fmc-timer {
+    height: 3;
+    content-align: center middle;
+    text-align: center;
+    color: #f85149;
+    text-style: bold;
+}
+
+#fmc-solution-input {
+    margin: 1 0;
+    width: 80%;
+    border: solid #30363d;
+    background: #161b22;
+    color: #e6edf3;
+}
+
+#fmc-status-label {
+    height: 2;
+    text-align: center;
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+#fmc-buttons-container {
+    height: 3;
+    align: center middle;
+    layout: horizontal;
+}
+
+#fmc-buttons-container Button {
+    margin: 0 2;
+    width: 20;
+}

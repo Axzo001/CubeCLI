@@ -26,6 +26,13 @@ class Config:
     hide_timer_running: bool = False
     use_voice_countdown: bool = False
 
+    # Phase 5 Power Features
+    bld_mode_enabled: bool = False
+    fmc_mode_enabled: bool = False
+    cfop_splits_enabled: bool = False
+    metronome_enabled: bool = False
+    metronome_tps: float = 2.0  # Turns per second (1.0 to 10.0)
+
     # Internal fields (not user-facing)
     _valid_puzzles: list[str] = field(
         default_factory=lambda: [
