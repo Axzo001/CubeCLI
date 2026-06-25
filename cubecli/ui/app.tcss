@@ -42,6 +42,19 @@ Screen {
     text-style: bold;
 }
 
+/* ── Cube net preview ────────────────────────────────────────────── */
+#cube-preview {
+    height: auto;
+    align: center middle;
+    margin: 0 1;
+    padding: 0 2;
+    background: #0d1117;
+}
+
+#cube-net {
+    text-align: center;
+}
+
 /* ── Timer section ───────────────────────────────────────────────── */
 #timer-section {
     height: 1fr;

@@ -39,6 +39,7 @@ from cubecli.core import stats as stats_mod
 from cubecli.core.timer import PrecisionTimer, TimerState, format_time
 from cubecli.data import db
 from cubecli.data.models import Session, Solve
+from cubecli.ui.widgets.cube_preview import CubePreview
 from cubecli.ui.widgets.scramble_panel import ScramblePanel
 from cubecli.ui.widgets.solve_list import SolveList
 from cubecli.ui.widgets.stats_panel import StatsPanel
@@ -101,6 +102,9 @@ class TimerScreen(Screen):
         with Container(id="scramble-section"):
             yield ScramblePanel(id="scramble-panel")
 
+        # Cube net preview (3x3 only)
+        yield CubePreview(id="cube-preview")
+
         # Central timer area
         with Container(id="timer-section"):
             yield TimerDisplay(id="timer-widget")
@@ -125,6 +129,7 @@ class TimerScreen(Screen):
             "[bold]z[/bold] undo  "
             "[bold]r[/bold] scramble  "
             "[bold]c[/bold] copy  "
+            "[bold]v[/bold] preview  "
             "[bold]P[/bold] puzzle  "
             "[bold]q[/bold] quit"
             "[/dim]",
@@ -149,6 +154,8 @@ class TimerScreen(Screen):
                 self._new_scramble()
             case "c":
                 self._copy_scramble()
+            case "v":
+                self._toggle_preview()
             case "P":
                 self._cycle_puzzle()
             case "q" | "escape":
@@ -308,6 +315,12 @@ class TimerScreen(Screen):
             panel.set_scramble(scramble, self.cfg.puzzle)
         except Exception:
             pass
+        try:
+            preview = self.query_one("#cube-preview", CubePreview)
+            if self.cfg.show_cube_preview:
+                preview.set_scramble(scramble, self.cfg.puzzle)
+        except Exception:
+            pass
 
     def _copy_scramble(self) -> None:
         if self._scramble:
@@ -316,6 +329,21 @@ class TimerScreen(Screen):
                 self.notify("Scramble copied!", timeout=2)
             except Exception:
                 self.notify("Clipboard not available", severity="warning", timeout=2)
+
+    def _toggle_preview(self) -> None:
+        """Toggle the cube net preview on/off and persist the setting."""
+        self.cfg.show_cube_preview = not self.cfg.show_cube_preview
+        self.cfg.save()
+        try:
+            preview = self.query_one("#cube-preview", CubePreview)
+            if self.cfg.show_cube_preview and self.cfg.puzzle == "3x3":
+                preview.set_scramble(self._scramble, self.cfg.puzzle)
+            else:
+                preview.display = False
+        except Exception:
+            pass
+        state = "on" if self.cfg.show_cube_preview else "off"
+        self.notify(f"Cube preview {state}", timeout=2)
 
     # ── Puzzle cycling ─────────────────────────────────────────────────────
 
