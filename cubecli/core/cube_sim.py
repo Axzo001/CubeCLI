@@ -50,18 +50,26 @@ _SOLVED_COLOURS = ["W", "Y", "G", "B", "O", "R"]
 
 # ── Internal helpers ──────────────────────────────────────────────────────────
 
+
 def _rot90_cw(face: list[str]) -> list[str]:
     """Rotate a 9-element face list 90° clockwise (viewed from outside)."""
     # pglass: [[face[n-1-j][i] for j in range(n)] for i in range(n)]
     # n=3, flat index (r,c) = r*3+c  →  new[r*3+c] = old[(n-1-c)*3+r]
     return [
-        face[6], face[3], face[0],
-        face[7], face[4], face[1],
-        face[8], face[5], face[2],
+        face[6],
+        face[3],
+        face[0],
+        face[7],
+        face[4],
+        face[1],
+        face[8],
+        face[5],
+        face[2],
     ]
 
 
 # ── Main class ────────────────────────────────────────────────────────────────
+
 
 class CubeState3x3:
     """Mutable 3×3 Rubik's Cube state.
@@ -78,9 +86,7 @@ class CubeState3x3:
 
     def reset(self) -> None:
         """Return cube to the solved (identity) state."""
-        self.faces: list[list[str]] = [
-            [c] * 9 for c in _SOLVED_COLOURS
-        ]
+        self.faces: list[list[str]] = [[c] * 9 for c in _SOLVED_COLOURS]
 
     def apply_scramble(self, scramble: str) -> None:
         """Reset to solved, then apply every move in *scramble*."""
@@ -105,9 +111,11 @@ class CubeState3x3:
             "R": self._R_cw,
         }[face_char]
         if modifier == "'":
-            move_fn(); move_fn(); move_fn()
+            for _ in range(3):
+                move_fn()
         elif modifier == "2":
-            move_fn(); move_fn()
+            for _ in range(2):
+                move_fn()
         else:
             move_fn()
 
@@ -214,7 +222,7 @@ class CubeState3x3:
 
     # ── Utilities ──────────────────────────────────────────────────────────────
 
-    def copy(self) -> "CubeState3x3":
+    def copy(self) -> CubeState3x3:
         """Return a deep copy of this state."""
         new = CubeState3x3.__new__(CubeState3x3)
         new.faces = copy.deepcopy(self.faces)

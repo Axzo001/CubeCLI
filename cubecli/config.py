@@ -29,22 +29,32 @@ class Config:
     # Internal fields (not user-facing)
     _valid_puzzles: list[str] = field(
         default_factory=lambda: [
-            "3x3", "2x2", "4x4", "5x5", "6x6", "7x7",
-            "Pyraminx", "Megaminx", "Skewb", "Square-1", "Clock",
+            "3x3",
+            "2x2",
+            "4x4",
+            "5x5",
+            "6x6",
+            "7x7",
+            "Pyraminx",
+            "Megaminx",
+            "Skewb",
+            "Square-1",
+            "Clock",
         ],
         repr=False,
         compare=False,
     )
 
     @classmethod
-    def load(cls) -> "Config":
+    def load(cls) -> Config:
         """Load config from disk, falling back to defaults on any error."""
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
         if CONFIG_FILE.exists():
             try:
                 raw = json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
                 valid_fields = {
-                    k: v for k, v in raw.items()
+                    k: v
+                    for k, v in raw.items()
                     if k in cls.__dataclass_fields__ and not k.startswith("_")
                 }
                 return cls(**valid_fields)
@@ -55,10 +65,7 @@ class Config:
     def save(self) -> None:
         """Persist config to disk."""
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-        data = {
-            k: v for k, v in asdict(self).items()
-            if not k.startswith("_")
-        }
+        data = {k: v for k, v in asdict(self).items() if not k.startswith("_")}
         CONFIG_FILE.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
     def next_puzzle(self) -> str:

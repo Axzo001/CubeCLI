@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import statistics
-from typing import Sequence
-
+from collections.abc import Sequence
 
 # A solve time value: int (milliseconds) or None (DNF)
 Time = int | None
@@ -31,10 +30,8 @@ def _trim_average(times: Sequence[Time], trim: int) -> Time:
         return None
 
     # Sort: valid times ascending, then DNFs at the end (as +inf)
-    sorted_vals = sorted(
-        (t if t is not None else float("inf") for t in times)
-    )
-    trimmed = sorted_vals[trim: n - trim]
+    sorted_vals = sorted(t if t is not None else float("inf") for t in times)
+    trimmed = sorted_vals[trim : n - trim]
     valid = [v for v in trimmed if v != float("inf")]
 
     if not valid:
@@ -44,6 +41,7 @@ def _trim_average(times: Sequence[Time], trim: int) -> Time:
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
+
 
 def calculate_mo3(times: list[Time]) -> Time:
     """Mean of 3 (no trimming). Returns None if any solve is DNF."""

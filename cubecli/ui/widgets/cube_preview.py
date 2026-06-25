@@ -39,7 +39,7 @@ _COLOUR_MAP: dict[str, str] = {
 _STICKER = "  "  # two spaces with coloured background
 
 # Blank / spacer (no sticker)
-_BLANK = "   "   # three spaces (matches sticker width + gap)
+_BLANK = "   "  # three spaces (matches sticker width + gap)
 
 
 def _sticker(colour_code: str) -> str:
@@ -51,13 +51,7 @@ def _sticker(colour_code: str) -> str:
 def _render_face_row(face: list[str], row: int) -> str:
     """Return a Rich markup string for one row (3 stickers) of a face."""
     base = row * 3
-    return (
-        _sticker(face[base])
-        + " "
-        + _sticker(face[base + 1])
-        + " "
-        + _sticker(face[base + 2])
-    )
+    return _sticker(face[base]) + " " + _sticker(face[base + 1]) + " " + _sticker(face[base + 2])
 
 
 class CubePreview(Widget):
@@ -69,8 +63,15 @@ class CubePreview(Widget):
 
     DEFAULT_CSS = ""
 
-    def __init__(self, **kwargs: object) -> None:
-        super().__init__(**kwargs)
+    def __init__(
+        self,
+        *children: Widget,
+        name: str | None = None,
+        id: str | None = None,
+        classes: str | None = None,
+        disabled: bool = False,
+    ) -> None:
+        super().__init__(*children, name=name, id=id, classes=classes, disabled=disabled)
         self._cube = CubeState3x3()
         self._puzzle = "3x3"
 

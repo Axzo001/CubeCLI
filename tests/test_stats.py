@@ -6,16 +6,16 @@ import pytest
 
 from cubecli.core.stats import (
     best_time,
-    calculate_ao12,
     calculate_ao5,
+    calculate_ao12,
     calculate_mo3,
     session_mean,
     session_stddev,
     sub_x_count,
 )
 
-
 # ── Mo3 ────────────────────────────────────────────────────────────────────────
+
 
 def test_mo3_basic():
     times = [10_000, 12_000, 11_000]
@@ -37,6 +37,7 @@ def test_mo3_too_short():
 
 
 # ── Ao5 ────────────────────────────────────────────────────────────────────────
+
 
 def test_ao5_trims_best_and_worst():
     # 9, 10, 11, 12, 13 → remove 9 (best) and 13 (worst) → mean(10,11,12) = 11
@@ -67,6 +68,7 @@ def test_ao5_too_short():
 
 # ── Ao12 ───────────────────────────────────────────────────────────────────────
 
+
 def test_ao12_too_short():
     assert calculate_ao12([10_000] * 11) is None
 
@@ -78,6 +80,7 @@ def test_ao12_trims():
 
 
 # ── Best time ─────────────────────────────────────────────────────────────────
+
 
 def test_best_ignores_dnf():
     assert best_time([None, 10_000, 8_000, None]) == 8_000
@@ -93,6 +96,7 @@ def test_best_empty():
 
 # ── Session mean ──────────────────────────────────────────────────────────────
 
+
 def test_mean_ignores_dnf():
     assert session_mean([None, 10_000, 12_000]) == 11_000
 
@@ -103,12 +107,14 @@ def test_mean_all_dnf():
 
 # ── Sub-X count ───────────────────────────────────────────────────────────────
 
+
 def test_sub_x_count():
     times = [9_000, 14_000, 16_000, None, 13_000]
     assert sub_x_count(times, 15_000) == 3
 
 
 # ── Stddev ────────────────────────────────────────────────────────────────────
+
 
 def test_stddev_needs_two():
     assert session_stddev([10_000]) is None

@@ -25,7 +25,7 @@ from __future__ import annotations
 import time
 from typing import TYPE_CHECKING
 
-import pyperclip  # type: ignore[import]
+import pyperclip
 from textual import work
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal, Vertical
@@ -36,7 +36,7 @@ from textual.widgets import Label
 from cubecli.config import Config
 from cubecli.core import scramble as scr_mod
 from cubecli.core import stats as stats_mod
-from cubecli.core.timer import PrecisionTimer, TimerState, format_time
+from cubecli.core.timer import PrecisionTimer, TimerState
 from cubecli.data import db
 from cubecli.data.models import Session, Solve
 from cubecli.ui.widgets.cube_preview import CubePreview
@@ -49,12 +49,12 @@ if TYPE_CHECKING:
     from textual.events import Key
 
 # ── Constants ──────────────────────────────────────────────────────────────────
-_HOLD_MS = 500          # ms to hold before READY state
-_RELEASE_DELAY = 0.15   # seconds with no space event → key released
-_TICK_INTERVAL = 0.01   # seconds between display refreshes while RUNNING
+_HOLD_MS = 500  # ms to hold before READY state
+_RELEASE_DELAY = 0.15  # seconds with no space event → key released
+_TICK_INTERVAL = 0.01  # seconds between display refreshes while RUNNING
 
 
-class TimerScreen(Screen):
+class TimerScreen(Screen[None]):
     """Full-screen timer interface."""
 
     BINDINGS = []  # We handle all keys manually for full control
@@ -83,9 +83,7 @@ class TimerScreen(Screen):
     def on_mount(self) -> None:
         """Initialise DB, load session, generate first scramble."""
         db.ensure_schema()
-        self._session = db.get_or_create_session(
-            self.cfg.session_name, self.cfg.puzzle
-        )
+        self._session = db.get_or_create_session(self.cfg.session_name, self.cfg.puzzle)
         self._solves = db.get_solves(self._session.id)  # type: ignore[arg-type]
         self._new_scramble()
         self._refresh_stats()
@@ -138,7 +136,7 @@ class TimerScreen(Screen):
 
     # ── Key handling ───────────────────────────────────────────────────────
 
-    def on_key(self, event: "Key") -> None:
+    def on_key(self, event: Key) -> None:
         event.stop()
 
         match event.key:
@@ -177,11 +175,6 @@ class TimerScreen(Screen):
                     self._hold_start = time.perf_counter()
                     self._set_state(TimerState.HOLDING)
 
-                # Check if we've held long enough → READY
-                elapsed_ms = (time.perf_counter() - self._hold_start) * 1000
-                if elapsed_ms >= _HOLD_MS and self._state == TimerState.HOLDING:
-                    self._set_state(TimerState.READY)
-
                 # Reset the release-detector timer on every repeat
                 self._reset_release_timer()
 
@@ -197,9 +190,7 @@ class TimerScreen(Screen):
         """Reset the 150 ms one-shot that detects key release."""
         if self._release_timer is not None:
             self._release_timer.stop()
-        self._release_timer = self.set_timer(
-            _RELEASE_DELAY, self._on_space_released
-        )
+        self._release_timer = self.set_timer(_RELEASE_DELAY, self._on_space_released)
 
     def _on_space_released(self) -> None:
         """Called ~150 ms after the last space event — the key was released."""
@@ -281,9 +272,7 @@ class TimerScreen(Screen):
         self._timer_display.set_ms(solve.effective_ms or solve.time_ms)
         self._refresh_stats()
         self._refresh_solve_list()
-        self._update_status(
-            f"[dim]Penalty: [bold]{solve.penalty or 'cleared'}[/bold][/dim]"
-        )
+        self._update_status(f"[dim]Penalty: [bold]{solve.penalty or 'cleared'}[/bold][/dim]")
 
     def _undo_delete(self) -> None:
         """Delete the most recent solve (acts as 'undo last solve')."""
@@ -306,7 +295,7 @@ class TimerScreen(Screen):
     def _new_scramble(self) -> None:
         """Generate a new scramble in a background thread (non-blocking)."""
         scramble = scr_mod.get_scramble(self.cfg.puzzle)
-        self.call_from_thread(self._apply_scramble, scramble)
+        self.app.call_from_thread(self._apply_scramble, scramble)
 
     def _apply_scramble(self, scramble: str) -> None:
         self._scramble = scramble
@@ -355,9 +344,7 @@ class TimerScreen(Screen):
         self.cfg.save()
         # Create/load session for new puzzle
         assert self._session is not None
-        self._session = db.get_or_create_session(
-            self.cfg.session_name, self.cfg.puzzle
-        )
+        self._session = db.get_or_create_session(self.cfg.session_name, self.cfg.puzzle)
         self._solves = db.get_solves(self._session.id)  # type: ignore[arg-type]
         self._last_solve = None
         self._set_state(TimerState.IDLE)
@@ -376,9 +363,7 @@ class TimerScreen(Screen):
 
         match state:
             case TimerState.IDLE:
-                self._update_status(
-                    "[dim]Hold [bold]SPACE[/bold] to ready, release to start[/dim]"
-                )
+                self._update_status("[dim]Hold [bold]SPACE[/bold] to ready, release to start[/dim]")
             case TimerState.HOLDING:
                 self._update_status("[yellow]Holding… keep holding…[/yellow]")
             case TimerState.READY:
@@ -414,12 +399,12 @@ class TimerScreen(Screen):
         times = [s.effective_ms for s in self._solves]
 
         single = self._last_solve.effective_ms if self._last_solve else None
-        mo3    = stats_mod.calculate_mo3(times)
-        ao5    = stats_mod.calculate_ao5(times)
-        ao12   = stats_mod.calculate_ao12(times)
-        ao50   = stats_mod.calculate_ao50(times)
-        best   = stats_mod.best_time(times)
-        mean   = stats_mod.session_mean(times)
+        mo3 = stats_mod.calculate_mo3(times)
+        ao5 = stats_mod.calculate_ao5(times)
+        ao12 = stats_mod.calculate_ao12(times)
+        ao50 = stats_mod.calculate_ao50(times)
+        best = stats_mod.best_time(times)
+        mean = stats_mod.session_mean(times)
 
         # Is single a new session PB?
         single_is_pb = (
@@ -431,8 +416,7 @@ class TimerScreen(Screen):
 
         try:
             self.query_one("#stats-widget", StatsPanel).update_stats(
-                single, mo3, ao5, ao12, ao50, best, mean,
-                len(self._solves), single_is_pb
+                single, mo3, ao5, ao12, ao50, best, mean, len(self._solves), single_is_pb
             )
         except Exception:
             pass

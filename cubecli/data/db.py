@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import sqlite3
+from collections.abc import Generator
 from contextlib import contextmanager
-from pathlib import Path
-from typing import Generator
 
 from cubecli.config import DB_FILE
 from cubecli.data.models import Session, Solve
@@ -41,6 +40,7 @@ CREATE INDEX IF NOT EXISTS idx_solves_timestamp ON solves(timestamp);
 
 # ── Connection helper ─────────────────────────────────────────────────────────
 
+
 @contextmanager
 def _connect() -> Generator[sqlite3.Connection, None, None]:
     DB_FILE.parent.mkdir(parents=True, exist_ok=True)
@@ -59,6 +59,7 @@ def _connect() -> Generator[sqlite3.Connection, None, None]:
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
+
 def ensure_schema() -> None:
     """Create tables if they don't exist yet (idempotent)."""
     with _connect():
@@ -66,6 +67,7 @@ def ensure_schema() -> None:
 
 
 # ── Sessions ──────────────────────────────────────────────────────────────────
+
 
 def create_session(session: Session) -> Session:
     """Insert a new session row and return it with its assigned ``id``."""
@@ -99,9 +101,7 @@ def get_or_create_session(name: str, puzzle: str) -> Session:
 def list_sessions() -> list[Session]:
     """Return all sessions, newest first."""
     with _connect() as conn:
-        rows = conn.execute(
-            "SELECT * FROM sessions ORDER BY created_at DESC"
-        ).fetchall()
+        rows = conn.execute("SELECT * FROM sessions ORDER BY created_at DESC").fetchall()
     return [
         Session(id=r["id"], name=r["name"], puzzle=r["puzzle"], created_at=r["created_at"])
         for r in rows
@@ -119,6 +119,7 @@ def delete_session(session_id: int) -> None:
 
 
 # ── Solves ────────────────────────────────────────────────────────────────────
+
 
 def insert_solve(solve: Solve) -> Solve:
     """Persist a solve and return it with its assigned ``id``."""
@@ -161,7 +162,7 @@ def delete_solve(solve_id: int) -> None:
 def get_solves(session_id: int, limit: int | None = None) -> list[Solve]:
     """Return solves for a session, oldest first."""
     sql = "SELECT * FROM solves WHERE session_id=? ORDER BY timestamp ASC"
-    params: tuple = (session_id,)
+    params: tuple[int, ...] = (session_id,)
     if limit is not None:
         sql += " LIMIT ?"
         params = (session_id, limit)
@@ -196,6 +197,7 @@ def get_effective_times(session_id: int) -> list[int | None]:
 
 # ── All-time records ──────────────────────────────────────────────────────────
 
+
 def get_alltime_best(puzzle: str) -> int | None:
     """Return the fastest non-DNF time ever for the given puzzle (ms)."""
     with _connect() as conn:
@@ -212,6 +214,7 @@ def get_alltime_best(puzzle: str) -> int | None:
 
 
 # ── Internal helpers ──────────────────────────────────────────────────────────
+
 
 def _row_to_solve(row: sqlite3.Row) -> Solve:
     return Solve(

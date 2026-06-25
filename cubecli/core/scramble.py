@@ -23,9 +23,17 @@ PUZZLE_NAMES: list[str] = list(PUZZLE_MAP.keys())
 
 # Expected move counts per puzzle (for UI display)
 EXPECTED_MOVES: dict[str, int] = {
-    "3x3": 20, "2x2": 11, "4x4": 40, "5x5": 60,
-    "6x6": 80, "7x7": 100, "Pyraminx": 11,
-    "Megaminx": 70, "Skewb": 11, "Square-1": 40, "Clock": 12,
+    "3x3": 20,
+    "2x2": 11,
+    "4x4": 40,
+    "5x5": 60,
+    "6x6": 80,
+    "7x7": 100,
+    "Pyraminx": 11,
+    "Megaminx": 70,
+    "Skewb": 11,
+    "Square-1": 40,
+    "Clock": 12,
 }
 
 
@@ -55,7 +63,7 @@ def get_scramble(puzzle: str = "3x3") -> str:
         A space-separated scramble string, e.g. ``"R2 U' F B' L2 ..."``.
     """
     try:
-        from pyTwistyScrambler import scrambler as s  # type: ignore[import]
+        from pyTwistyScrambler import scrambler as s
 
         fn_map: dict[str, object] = {
             "333": s.scramble333,

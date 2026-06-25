@@ -8,7 +8,6 @@ from textual.widgets import Label
 
 from cubecli.core.timer import format_time
 
-
 _DASH = "[dim]──────[/dim]"
 
 
@@ -59,13 +58,13 @@ class StatsPanel(Widget):
         pb_tag = " [bold green]🏆[/bold green]" if single_is_pb else ""
         rows = [
             ("single", "Single", _fmt(single) + pb_tag),
-            ("mo3",    "Mo3   ", _fmt(mo3)),
-            ("ao5",    "Ao5   ", _fmt(ao5)),
-            ("ao12",   "Ao12  ", _fmt(ao12)),
-            ("ao50",   "Ao50  ", _fmt(ao50)),
-            ("best",   "Best  ", _fmt(best)),
-            ("mean",   "Mean  ", _fmt(mean)),
-            ("count",  "Solves", str(count)),
+            ("mo3", "Mo3   ", _fmt(mo3)),
+            ("ao5", "Ao5   ", _fmt(ao5)),
+            ("ao12", "Ao12  ", _fmt(ao12)),
+            ("ao50", "Ao50  ", _fmt(ao50)),
+            ("best", "Best  ", _fmt(best)),
+            ("mean", "Mean  ", _fmt(mean)),
+            ("count", "Solves", str(count)),
         ]
         for row_id, label, value in rows:
             try:

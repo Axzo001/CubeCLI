@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from cubecli.core.cube_sim import CubeState3x3
 
 
@@ -19,7 +17,7 @@ class TestCubeStateInit:
 
     def test_reset_restores_solved(self) -> None:
         cube = CubeState3x3()
-        cube._apply_move('R')
+        cube._apply_move("R")
         assert not cube.is_solved()
         cube.reset()
         assert cube.is_solved()
@@ -30,48 +28,48 @@ class TestSingleMoves:
         cube = CubeState3x3()
         initial = [face[:] for face in cube.faces]
         for _ in range(4):
-            cube._apply_move('U')
+            cube._apply_move("U")
         assert cube.faces == initial
 
     def test_d_cw_four_times_is_identity(self) -> None:
         cube = CubeState3x3()
         initial = [face[:] for face in cube.faces]
         for _ in range(4):
-            cube._apply_move('D')
+            cube._apply_move("D")
         assert cube.faces == initial
 
     def test_f_cw_four_times_is_identity(self) -> None:
         cube = CubeState3x3()
         initial = [face[:] for face in cube.faces]
         for _ in range(4):
-            cube._apply_move('F')
+            cube._apply_move("F")
         assert cube.faces == initial
 
     def test_b_cw_four_times_is_identity(self) -> None:
         cube = CubeState3x3()
         initial = [face[:] for face in cube.faces]
         for _ in range(4):
-            cube._apply_move('B')
+            cube._apply_move("B")
         assert cube.faces == initial
 
     def test_l_cw_four_times_is_identity(self) -> None:
         cube = CubeState3x3()
         initial = [face[:] for face in cube.faces]
         for _ in range(4):
-            cube._apply_move('L')
+            cube._apply_move("L")
         assert cube.faces == initial
 
     def test_r_cw_four_times_is_identity(self) -> None:
         cube = CubeState3x3()
         initial = [face[:] for face in cube.faces]
         for _ in range(4):
-            cube._apply_move('R')
+            cube._apply_move("R")
         assert cube.faces == initial
 
     def test_ccw_is_inverse_of_cw(self) -> None:
         cube = CubeState3x3()
         initial = [face[:] for face in cube.faces]
-        for face_str in ['U', 'D', 'F', 'B', 'L', 'R']:
+        for face_str in ["U", "D", "F", "B", "L", "R"]:
             cube._apply_move(face_str)
             cube._apply_move(face_str + "'")
             assert cube.faces == initial, f"CW+CCW not identity for face {face_str}"
@@ -160,5 +158,4 @@ class TestCopy:
         cube.apply_scramble("L")
         # copy must not be affected
         original_faces = [face[:] for face in copy.faces]
-        copy2 = cube.copy()
         assert copy.faces == original_faces

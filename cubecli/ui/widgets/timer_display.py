@@ -9,7 +9,6 @@ from textual.widgets import Label
 
 from cubecli.core.timer import TimerState, format_time
 
-
 _BIG_ZERO = "0.000"
 
 

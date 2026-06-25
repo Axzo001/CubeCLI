@@ -44,8 +44,7 @@ class ScramblePanel(Widget):
         moves = count_moves(self.scramble)
         try:
             self.query_one("#scramble-header", Label).update(
-                f"[dim]── {self.puzzle}  ·  {moves} moves ──  "
-                f"\\[r] new  \\[c] copy[/dim]"
+                f"[dim]── {self.puzzle}  ·  {moves} moves ──  \\[r] new  \\[c] copy[/dim]"
             )
             self.query_one("#scramble-text", Label).update(
                 f"[bold]{self.scramble or '…generating…'}[/bold]"

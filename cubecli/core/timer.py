@@ -9,11 +9,11 @@ from enum import Enum, auto
 class TimerState(Enum):
     """All possible states of the solve timer."""
 
-    IDLE = auto()      # Resting: showing scramble + last time (or 0:00.000)
-    HOLDING = auto()   # Space held down, building up to ready
-    READY = auto()     # Held long enough — green light, release to start
-    RUNNING = auto()   # Timer actively counting up
-    STOPPED = auto()   # Solve complete — time saved, penalties can be applied
+    IDLE = auto()  # Resting: showing scramble + last time (or 0:00.000)
+    HOLDING = auto()  # Space held down, building up to ready
+    READY = auto()  # Held long enough — green light, release to start
+    RUNNING = auto()  # Timer actively counting up
+    STOPPED = auto()  # Solve complete — time saved, penalties can be applied
 
 
 # Colour to show for each state (maps to Textual/Rich markup colours)

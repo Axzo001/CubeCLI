@@ -8,7 +8,7 @@ from cubecli.config import Config
 from cubecli.ui.screens.timer_screen import TimerScreen
 
 
-class CubeCLIApp(App):
+class CubeCLIApp(App[None]):
     """The root Textual application for CubeCLI.
 
     Loads user config, then pushes the :class:`TimerScreen` as the

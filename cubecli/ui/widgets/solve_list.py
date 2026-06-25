@@ -6,7 +6,6 @@ from textual.app import ComposeResult
 from textual.widget import Widget
 from textual.widgets import Label
 
-from cubecli.core.timer import format_time
 from cubecli.data.models import Solve
 
 # Braille-based sparkline characters (8 levels)
@@ -62,15 +61,14 @@ class SolveList(Widget):
         spark = _sparkline(spark_times)
         try:
             self.query_one("#sparkline-bar", Label).update(
-                f" {spark}  [dim](last {min(len(solves), _MAX_SPARK)})[/dim]"
-                if spark else ""
+                f" {spark}  [dim](last {min(len(solves), _MAX_SPARK)})[/dim]" if spark else ""
             )
         except Exception:
             pass
 
         # ── Solve rows ──────────────────────────────────────────────────
         # Show newest first
-        recent = list(reversed(solves[-self._MAX_SHOWN:]))
+        recent = list(reversed(solves[-self._MAX_SHOWN :]))
         total = len(solves)
 
         for i in range(self._MAX_SHOWN):
@@ -99,9 +97,7 @@ class SolveList(Widget):
             scr = solve.scramble
             scr_short = scr[:40] + "…" if len(scr) > 40 else scr
 
-            lbl.update(
-                f" [dim]#{num:>3}[/dim]  {time_markup}  [dim]{scr_short}[/dim]"
-            )
+            lbl.update(f" [dim]#{num:>3}[/dim]  {time_markup}  [dim]{scr_short}[/dim]")
 
     def _clear(self) -> None:
         """Reset all rows to empty."""
