@@ -16,13 +16,29 @@ from cubecli.training.trainer import (
 
 
 def test_invert_move() -> None:
+    # Basic face moves
     assert invert_move("R") == "R'"
     assert invert_move("R'") == "R"
     assert invert_move("R2") == "R2"
+    # 2' modifier (legacy algorithm databases) — inverse of R2' is R2
     assert invert_move("R2'") == "R2"
+    # Bracket/parenthesis stripping
     assert invert_move("(R)") == "R'"
     assert invert_move("[R']") == "R"
+    # Empty string
     assert invert_move("") == ""
+    # Wide moves (uppercase w notation)
+    assert invert_move("Rw") == "Rw'"
+    assert invert_move("Rw'") == "Rw"
+    assert invert_move("Rw2") == "Rw2"
+    # Lowercase wide moves
+    assert invert_move("u") == "u'"
+    assert invert_move("u'") == "u"
+    assert invert_move("u2") == "u2"
+    # Rotation moves
+    assert invert_move("x") == "x'"
+    assert invert_move("y'") == "y"
+    assert invert_move("z2") == "z2"
 
 
 def test_invert_algorithm() -> None:

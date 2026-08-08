@@ -9,13 +9,14 @@ from rich.table import Table
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal, Vertical
 from textual.screen import Screen
-from textual.widgets import Label, Static
+from textual.widgets import Button, Label, Static
 from textual_plot import DurationFormatter, HiResMode, NumericAxisFormatter, PlotWidget
 
 from cubecli.config import Config
 from cubecli.core import stats as stats_mod
 from cubecli.core.timer import format_time
 from cubecli.data import db
+from cubecli.ui.widgets.sidebar_btn import SidebarButton
 
 if TYPE_CHECKING:
     from textual.events import Key
@@ -32,6 +33,16 @@ class StatsScreen(Screen[None]):
         self.session_id = session_id
 
     def compose(self) -> ComposeResult:
+        # Left sidebar
+        with Vertical(id="sidebar"):
+            yield Label("🧊 CubeCLI", id="sidebar-title")
+            yield SidebarButton("⏱ Timer", id="btn-timer", classes="sidebar-btn")
+            yield SidebarButton("📊 Stats", id="btn-stats", classes="sidebar-btn active")
+            yield SidebarButton("🏋 Trainer", id="btn-trainer", classes="sidebar-btn")
+            yield SidebarButton("⚙ Settings", id="btn-settings", classes="sidebar-btn")
+            yield SidebarButton("🧩 Puzzle", id="btn-puzzle", classes="sidebar-btn")
+            yield SidebarButton("📂 Session", id="btn-session", classes="sidebar-btn")
+
         # Title bar / Header
         yield Label("", id="stats-header")
 
@@ -65,14 +76,40 @@ class StatsScreen(Screen[None]):
 
     def on_key(self, event: Key) -> None:
         """Close stats screen and return to timer."""
+        from cubecli.ui.widgets.sidebar_btn import handle_sidebar_navigation
+
+        if handle_sidebar_navigation(self, event.key):
+            event.stop()
+            return
+
         event.stop()
         if event.key in ("escape", "q", "s", "g"):
             self.app.pop_screen()
 
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        match event.button.id:
+            case "btn-timer":
+                self.app.pop_screen()
+            case "btn-stats":
+                pass
+            case "btn-trainer":
+                from cubecli.ui.screens.train_screen import TrainScreen
+
+                self.app.pop_screen()
+                self.app.push_screen(TrainScreen(self.cfg))
+            case "btn-settings":
+                from cubecli.ui.screens.settings_screen import SettingsScreen
+
+                self.app.push_screen(SettingsScreen(self.cfg))
+            case "btn-puzzle" | "btn-session":
+                self.app.pop_screen()
+
     def _refresh(self) -> None:
         """Query databases and update UI elements."""
         solves = db.get_solves(self.session_id)
-        times = [s.effective_ms for s in solves]
+        # Exclude FMC solves (stored as move_count * 1000) from timed stats
+        timed_solves = [s for s in solves if not s.notes.startswith("fmc_sol:")]
+        times = [s.effective_ms for s in timed_solves]
         valid_times = [t for t in times if t is not None]
         puzzle = self.cfg.puzzle
 
@@ -105,8 +142,9 @@ class StatsScreen(Screen[None]):
         self.query_one("#stats-header", Label).update(header_markup)
 
         # 2. Advanced Rolling Averages Comparison
-        all_solves = db.get_all_solves_for_puzzle(puzzle)
-        all_times = [s.effective_ms for s in all_solves]
+        # Also exclude FMC from all-time results
+        all_solves_raw = db.get_all_solves_for_puzzle(puzzle)
+        all_times = [s.effective_ms for s in all_solves_raw if not s.notes.startswith("fmc_sol:")]
 
         # Calculate current values
         curr_single = times[-1] if times else None
@@ -154,13 +192,29 @@ class StatsScreen(Screen[None]):
             ("Ao50", _fmt(curr_ao50), _fmt(best_ao50), _fmt(all_ao50)),
             ("Ao100", _fmt(curr_ao100), _fmt(best_ao100), _fmt(all_ao100)),
         ]
+        # Raw (int | None) bests for PB comparison — comparing raw ms values
+        # is safer than comparing formatted strings which can tie-break wrongly.
+        raw_bests = {
+            "Single": best_single,
+            "Mo3": best_mo3,
+            "Ao5": best_ao5,
+            "Ao12": best_ao12,
+            "Ao50": best_ao50,
+            "Ao100": best_ao100,
+        }
+        raw_all_bests = {
+            "Single": all_single,
+            "Mo3": all_mo3,
+            "Ao5": all_ao5,
+            "Ao12": all_ao12,
+            "Ao50": all_ao50,
+            "Ao100": all_ao100,
+        }
         for name, curr, s_best, a_best in rows:
-            # Highlight PBs
-            is_pb = (
-                s_best != "─"
-                and s_best == a_best
-                and (name == "Single" or name in ("Mo3", "Ao5", "Ao12", "Ao50", "Ao100"))
-            )
+            # Highlight PBs by comparing raw ms values directly (not strings)
+            raw_s = raw_bests.get(name)
+            raw_a = raw_all_bests.get(name)
+            is_pb = raw_s is not None and raw_a is not None and raw_s == raw_a
             a_best_fmt = f"[bold green]{a_best} 🏆[/bold green]" if is_pb else a_best
             comp_table.add_row(name, curr, s_best, a_best_fmt)
 

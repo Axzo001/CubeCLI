@@ -29,6 +29,7 @@ import pyperclip
 from textual import work
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal, Vertical
+from textual.geometry import Size
 from textual.screen import Screen
 from textual.timer import Timer
 from textual.widgets import Button, Input, Label
@@ -43,6 +44,7 @@ from cubecli.ui.screens.stats_screen import StatsScreen
 from cubecli.ui.screens.train_screen import TrainScreen
 from cubecli.ui.widgets.cube_preview import CubePreview
 from cubecli.ui.widgets.scramble_panel import ScramblePanel
+from cubecli.ui.widgets.sidebar_btn import SidebarButton
 from cubecli.ui.widgets.solve_list import SolveList
 from cubecli.ui.widgets.stats_panel import StatsPanel
 from cubecli.ui.widgets.timer_display import TimerDisplay
@@ -122,29 +124,92 @@ class TimerScreen(Screen[None]):
         if self.cfg.fmc_mode_enabled:
             self._set_fmc_layout(True)
 
+    def watch_size(self, size: Size) -> None:
+        """Handle screen resizing to dynamically toggle the cube preview."""
+        self._adjust_layout_for_size(size)
+
+    def _adjust_layout_for_size(self, size: Size | None = None) -> None:
+        if self.cfg.fmc_mode_enabled:
+            return
+        if size is None:
+            try:
+                size = self.size
+            except Exception:
+                # App size is not available (e.g. screen not mounted in tests)
+                return
+        try:
+            preview = self.query_one("#cube-preview", CubePreview)
+            bottom_section = self.query_one("#bottom-section", Horizontal)
+        except Exception:
+            return
+
+        # Auto-hide cube preview if terminal height is too small
+        puzzle = self.cfg.puzzle
+        size_val = None
+        if puzzle == "2x2":
+            size_val = 2
+        elif puzzle == "3x3":
+            size_val = 3
+        elif puzzle == "4x4":
+            size_val = 4
+        elif puzzle == "5x5":
+            size_val = 5
+        elif puzzle == "6x6":
+            size_val = 6
+        elif puzzle == "7x7":
+            size_val = 7
+
+        required_height = 20
+        if size_val is not None:
+            # Net height is 3 * size_val + 4. Other UI parts need ~10 lines.
+            required_height = (3 * size_val + 4) + 10
+
+        if size.height < required_height:
+            preview.display = False
+        else:
+            preview.display = self.cfg.show_cube_preview and self.cfg.puzzle in (
+                "2x2",
+                "3x3",
+                "4x4",
+                "5x5",
+                "6x6",
+                "7x7",
+            )
+            if preview.display and self._scramble:
+                preview.set_scramble(self._scramble, self.cfg.puzzle)
+
+        if preview.display and size_val is not None:
+            bottom_section.styles.height = (3 * size_val + 4) + 2
+        else:
+            bottom_section.styles.height = 8
+
     # ── Layout ─────────────────────────────────────────────────────────────
 
     def compose(self) -> ComposeResult:
+        # Left sidebar
+        with Vertical(id="sidebar"):
+            yield Label("🧊 CubeCLI", id="sidebar-title")
+            yield SidebarButton("⏱ Timer", id="btn-timer", classes="sidebar-btn active")
+            yield SidebarButton("📊 Stats", id="btn-stats", classes="sidebar-btn")
+            yield SidebarButton("🏋 Trainer", id="btn-trainer", classes="sidebar-btn")
+            yield SidebarButton("⚙ Settings", id="btn-settings", classes="sidebar-btn")
+            yield SidebarButton("🧩 Puzzle", id="btn-puzzle", classes="sidebar-btn")
+            yield SidebarButton("📂 Session", id="btn-session", classes="sidebar-btn")
+
         # Header strip
         yield Label("", id="app-header")
 
-        # Scramble section
-        with Container(id="scramble-section"):
-            yield ScramblePanel(id="scramble-panel")
-
-        # Cube net preview (3x3 only)
-        yield CubePreview(id="cube-preview")
-
         # Central timer area
         with Container(id="timer-section"):
+            yield ScramblePanel(id="scramble-panel")
             yield TimerDisplay(id="timer-widget")
             yield Label(
                 "[dim]Hold [bold]SPACE[/bold] to ready, release to start[/dim]",
                 id="status-label",
             )
 
-        # FMC Section (hidden by default)
-        with Container(id="fmc-section"):
+        # FMC Section (hidden by default, disabled to prevent keyboard focus lockout)
+        with Container(id="fmc-section", disabled=True):
             yield Label("Time Remaining: [bold red]60:00[/bold red]", id="fmc-timer")
             yield Input(
                 placeholder="Enter your solution (e.g. R U R' U')...", id="fmc-solution-input"
@@ -154,12 +219,13 @@ class TimerScreen(Screen[None]):
                 yield Button("Submit", variant="success", id="fmc-submit-btn")
                 yield Button("Cancel", variant="error", id="fmc-cancel-btn")
 
-        # Bottom: stats + solve list
+        # Bottom: solve list + stats + scramble preview
         with Horizontal(id="bottom-section"):
-            with Vertical(id="stats-panel"):
-                yield StatsPanel(id="stats-widget")
             with Vertical(id="solve-list-panel"):
                 yield SolveList(id="solve-list-widget")
+            with Vertical(id="stats-panel"):
+                yield StatsPanel(id="stats-widget")
+            yield CubePreview(id="cube-preview")
 
         # Key hints footer
         yield Label(
@@ -197,6 +263,12 @@ class TimerScreen(Screen[None]):
                 # Let key events bubble to the Input widget for typing
                 return
 
+        from cubecli.ui.widgets.sidebar_btn import handle_sidebar_navigation
+
+        if self._state not in (TimerState.RUNNING,) and handle_sidebar_navigation(self, event.key):
+            event.stop()
+            return
+
         event.stop()
 
         match event.key:
@@ -205,9 +277,9 @@ class TimerScreen(Screen[None]):
             case "enter" if self._state == TimerState.RUNNING:
                 if self.cfg.cfop_splits_enabled:
                     self._record_cfop_split()
-            case "d":
+            case "d" if self._state == TimerState.STOPPED:
                 self._apply_penalty("DNF")
-            case "p":
+            case "p" if self._state == TimerState.STOPPED:
                 self._apply_penalty("+2")
             case "z" | "ctrl+z":
                 self._undo_delete()
@@ -408,6 +480,9 @@ class TimerScreen(Screen[None]):
             elapsed_ms = self._bld_memo_ms + self._bld_exec_ms
             solve_notes = f"memo:{self._bld_memo_ms}|exec:{self._bld_exec_ms}"
             self._bld_phase = None
+            # BLD computes elapsed_ms manually, so stop the timer to reset its
+            # internal state — prevents it from continuing to tick.
+            self._precision_timer.stop()
         elif self.cfg.cfop_splits_enabled:
             elapsed_ms = self._precision_timer.stop()
             # If there are remaining splits, fill them
@@ -491,21 +566,27 @@ class TimerScreen(Screen[None]):
 
     @work(thread=True)
     def _new_scramble(self) -> None:
-        """Generate a new scramble in a background thread (non-blocking)."""
-        scramble = scr_mod.get_scramble(self.cfg.puzzle)
-        self.app.call_from_thread(self._apply_scramble, scramble)
+        """Generate a new scramble in a background thread (non-blocking).
 
-    def _apply_scramble(self, scramble: str) -> None:
+        The puzzle is captured here — before the background thread runs —
+        to avoid a race condition where cfg.puzzle changes between generation
+        and the UI update in _apply_scramble.
+        """
+        puzzle = self.cfg.puzzle  # capture now, before any potential puzzle change
+        scramble = scr_mod.get_scramble(puzzle)
+        self.app.call_from_thread(self._apply_scramble, scramble, puzzle)
+
+    def _apply_scramble(self, scramble: str, puzzle: str) -> None:
         self._scramble = scramble
         try:
             panel = self.query_one("#scramble-panel", ScramblePanel)
-            panel.set_scramble(scramble, self.cfg.puzzle)
+            panel.set_scramble(scramble, puzzle)
         except Exception:
             pass
         try:
             preview = self.query_one("#cube-preview", CubePreview)
             if self.cfg.show_cube_preview:
-                preview.set_scramble(scramble, self.cfg.puzzle)
+                preview.set_scramble(scramble, puzzle)
         except Exception:
             pass
 
@@ -521,14 +602,7 @@ class TimerScreen(Screen[None]):
         """Toggle the cube net preview on/off and persist the setting."""
         self.cfg.show_cube_preview = not self.cfg.show_cube_preview
         self.cfg.save()
-        try:
-            preview = self.query_one("#cube-preview", CubePreview)
-            if self.cfg.show_cube_preview and self.cfg.puzzle == "3x3":
-                preview.set_scramble(self._scramble, self.cfg.puzzle)
-            else:
-                preview.display = False
-        except Exception:
-            pass
+        self._adjust_layout_for_size()
         state = "on" if self.cfg.show_cube_preview else "off"
         self.notify(f"Cube preview {state}", timeout=2)
 
@@ -554,6 +628,7 @@ class TimerScreen(Screen[None]):
                 self._refresh_stats()
                 self._refresh_solve_list()
                 self._update_header()
+                self._adjust_layout_for_size()
                 self.notify(f"Puzzle: {self.cfg.puzzle}", timeout=2)
 
         from cubecli.ui.screens.puzzle_picker import PuzzlePicker
@@ -690,8 +765,13 @@ class TimerScreen(Screen[None]):
         """Record a DNF solve due to inspection timeout."""
         self._set_state(TimerState.STOPPED)
         assert self._session is not None
+        # Record the actual elapsed time at the point of DNF, not zero.
+        # If the penalty is ever cleared, the stored time will be meaningful.
+        dnf_time_ms = 0
+        if hasattr(self, "_inspection_start") and self._inspection_start is not None:
+            dnf_time_ms = int((time.perf_counter() - self._inspection_start) * 1000)
         solve = Solve(
-            time_ms=0,
+            time_ms=dnf_time_ms,
             scramble=self._scramble,
             puzzle=self.cfg.puzzle,
             session_id=self._session.id,
@@ -729,7 +809,8 @@ class TimerScreen(Screen[None]):
             bottom_section.display = False
             preview.display = False
 
-            # Show FMC panel
+            # Enable and show FMC panel
+            fmc_section.disabled = False
             fmc_section.display = True
 
             # Setup countdown
@@ -746,7 +827,8 @@ class TimerScreen(Screen[None]):
             # Focus input
             self.query_one("#fmc-solution-input", Input).focus()
         else:
-            # Hide FMC panel
+            # Disable and hide FMC panel
+            fmc_section.disabled = True
             fmc_section.display = False
 
             # Stop timer
@@ -757,10 +839,7 @@ class TimerScreen(Screen[None]):
             # Restore normal panels
             timer_section.display = True
             bottom_section.display = True
-            if self.cfg.show_cube_preview and self.cfg.puzzle == "3x3":
-                preview.display = True
-            else:
-                preview.display = False
+            self._adjust_layout_for_size()
 
     def _fmc_tick(self) -> None:
         """Update FMC countdown timer once per second."""
@@ -806,8 +885,83 @@ class TimerScreen(Screen[None]):
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "fmc-submit-btn":
             self._submit_fmc_solution()
+            return
         elif event.button.id == "fmc-cancel-btn":
             self._cancel_fmc()
+            return
+
+        # Sidebar buttons
+        match event.button.id:
+            case "btn-timer":
+                pass
+            case "btn-stats":
+                self.action_open_stats()
+            case "btn-trainer":
+                self.action_open_trainer()
+            case "btn-settings":
+                self.action_open_settings()
+            case "btn-puzzle":
+                self.action_open_puzzle_picker()
+            case "btn-session":
+                self.action_open_session_picker()
+
+    def action_open_stats(self) -> None:
+        if self._state == TimerState.RUNNING:
+            return
+        assert self._session is not None
+        assert self._session.id is not None
+        self.app.push_screen(StatsScreen(self.cfg, self._session.id))
+
+    def action_open_trainer(self) -> None:
+        if self._state == TimerState.RUNNING:
+            return
+        self.app.push_screen(TrainScreen(self.cfg))
+
+    def action_open_settings(self) -> None:
+        if self._state == TimerState.RUNNING:
+            return
+
+        def on_settings_close(result: None) -> None:
+            self._adjust_layout_for_size()
+            self._update_header()
+            self._refresh_stats()
+            self._refresh_solve_list()
+            if self._metronome_timer:
+                self._metronome_timer.stop()
+                self._metronome_timer = None
+            self._new_scramble()
+
+        from cubecli.ui.screens.settings_screen import SettingsScreen
+
+        self.app.push_screen(SettingsScreen(self.cfg), on_settings_close)
+
+    def action_open_puzzle_picker(self) -> None:
+        self._open_puzzle_picker()
+
+    def action_open_session_picker(self) -> None:
+        if self._state == TimerState.RUNNING:
+            return
+
+        def on_session_close(selected_session: str | None) -> None:
+            if selected_session and selected_session != self.cfg.session_name:
+                self.cfg.session_name = selected_session
+                self.cfg.save()
+                self._session = db.get_or_create_session(self.cfg.session_name, self.cfg.puzzle)
+                self._solves = db.get_solves(self._session.id)  # type: ignore[arg-type]
+                self._last_solve = None
+                self._set_state(TimerState.IDLE)
+                self._timer_display.reset()
+                self._new_scramble()
+                self._refresh_stats()
+                self._refresh_solve_list()
+                self._update_header()
+                self.notify(f"Session: {selected_session}", timeout=2)
+
+        from cubecli.ui.screens.session_picker import SessionPicker
+
+        self.app.push_screen(
+            SessionPicker(self.cfg.session_name, self.cfg.puzzle), on_session_close
+        )
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
         if event.input.id == "fmc-solution-input":
@@ -865,9 +1019,14 @@ class TimerScreen(Screen[None]):
     # ── Stats refresh ──────────────────────────────────────────────────────
 
     def _refresh_stats(self) -> None:
-        times = [s.effective_ms for s in self._solves]
+        # Exclude FMC solves from timed-solve statistics — FMC stores move
+        # count × 1000 as time_ms, which would skew rolling averages.
+        # FMC solves are identified by notes starting with 'fmc_sol:'.
+        timed_solves = [s for s in self._solves if not s.notes.startswith("fmc_sol:")]
+        times = [s.effective_ms for s in timed_solves]
 
-        single = self._last_solve.effective_ms if self._last_solve else None
+        last_timed = timed_solves[-1] if timed_solves else None
+        single = last_timed.effective_ms if last_timed else None
         mo3 = stats_mod.calculate_mo3(times)
         ao5 = stats_mod.calculate_ao5(times)
         ao12 = stats_mod.calculate_ao12(times)
@@ -876,11 +1035,11 @@ class TimerScreen(Screen[None]):
         mean = stats_mod.session_mean(times)
 
         # Is single a new session PB?
+        # Compare raw ms values instead of formatted strings to avoid edge cases.
         single_is_pb = (
             single is not None
             and best is not None
             and single == best
-            and len([t for t in times if t is not None]) > 0
         )
 
         try:
