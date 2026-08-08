@@ -37,14 +37,32 @@ EXPECTED_MOVES: dict[str, int] = {
 }
 
 
+# Opposite-face pairs that share the same axis — avoid back-to-back moves
+# on the same axis (e.g. R L, U D, F B) since they are either redundant or
+# equivalent to a single move, just as WCA-compliant scramblers do.
+_SAME_AXIS: dict[str, str] = {
+    "R": "L",
+    "L": "R",
+    "U": "D",
+    "D": "U",
+    "F": "B",
+    "B": "F",
+}
+
+
 def _fallback_scramble(moves: int = 20) -> str:
-    """Generate a naive (non-random-state) 3x3 scramble as a fallback."""
+    """Generate a naive (non-random-state) 3x3 scramble as a fallback.
+
+    Avoids back-to-back moves on the same axis (e.g. R immediately followed by
+    L) to produce higher-quality scrambles when pyTwistyScrambler is absent.
+    """
     faces = ["R", "L", "U", "D", "F", "B"]
     mods = ["", "'", "2"]
     result: list[str] = []
     prev = ""
     for _ in range(moves):
-        face = random.choice([f for f in faces if f != prev])
+        excluded = {prev, _SAME_AXIS.get(prev, "")}
+        face = random.choice([f for f in faces if f not in excluded])
         result.append(face + random.choice(mods))
         prev = face
     return " ".join(result)

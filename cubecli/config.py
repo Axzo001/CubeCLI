@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import json
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import ClassVar
 
 CONFIG_DIR: Path = Path.home() / ".cubecli"
 CONFIG_FILE: Path = CONFIG_DIR / "config.json"
@@ -33,24 +34,22 @@ class Config:
     metronome_enabled: bool = False
     metronome_tps: float = 2.0  # Turns per second (1.0 to 10.0)
 
-    # Internal fields (not user-facing)
-    _valid_puzzles: list[str] = field(
-        default_factory=lambda: [
-            "3x3",
-            "2x2",
-            "4x4",
-            "5x5",
-            "6x6",
-            "7x7",
-            "Pyraminx",
-            "Megaminx",
-            "Skewb",
-            "Square-1",
-            "Clock",
-        ],
-        repr=False,
-        compare=False,
-    )
+    # Internal class-level constant (not persisted to JSON).
+    # ClassVar fields are excluded from dataclass machinery (asdict, __init__, etc.)
+    # so no special filtering is needed in save().
+    _valid_puzzles: ClassVar[list[str]] = [
+        "3x3",
+        "2x2",
+        "4x4",
+        "5x5",
+        "6x6",
+        "7x7",
+        "Pyraminx",
+        "Megaminx",
+        "Skewb",
+        "Square-1",
+        "Clock",
+    ]
 
     @classmethod
     def load(cls) -> Config:

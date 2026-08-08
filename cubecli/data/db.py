@@ -11,10 +11,12 @@ from cubecli.data.models import Session, Solve
 
 # ── Schema ────────────────────────────────────────────────────────────────────
 
-_DDL = """
+_PRAGMAS = """
 PRAGMA journal_mode=WAL;
 PRAGMA foreign_keys=ON;
+"""
 
+_DDL = """
 CREATE TABLE IF NOT EXISTS sessions (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     name       TEXT    NOT NULL,
@@ -43,11 +45,14 @@ CREATE INDEX IF NOT EXISTS idx_solves_timestamp ON solves(timestamp);
 
 @contextmanager
 def _connect() -> Generator[sqlite3.Connection, None, None]:
+    """Open a WAL-mode connection.  Schema DDL is NOT run here; call
+    ensure_schema() once at startup instead."""
     DB_FILE.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(DB_FILE))
     conn.row_factory = sqlite3.Row
     try:
-        conn.executescript(_DDL)
+        # PRAGMAs are cheap and must be set per-connection.
+        conn.executescript(_PRAGMAS)
         yield conn
         conn.commit()
     except Exception:
@@ -61,9 +66,15 @@ def _connect() -> Generator[sqlite3.Connection, None, None]:
 
 
 def ensure_schema() -> None:
-    """Create tables if they don't exist yet (idempotent)."""
-    with _connect():
-        pass
+    """Create tables if they don't exist yet (idempotent).  Call once at startup."""
+    DB_FILE.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(str(DB_FILE))
+    conn.row_factory = sqlite3.Row
+    try:
+        conn.executescript(_PRAGMAS + _DDL)
+        conn.commit()
+    finally:
+        conn.close()
 
 
 # ── Sessions ──────────────────────────────────────────────────────────────────
