@@ -1,4 +1,4 @@
-"""Big timer display widget."""
+"""Big timer display widget using a 5x4 block font."""
 
 from __future__ import annotations
 
@@ -11,13 +11,29 @@ from cubecli.core.timer import TimerState, format_time
 
 _BIG_ZERO = "0.000"
 
+# 5-line-high block font for digits and separators
+_BLOCK_FONT: dict[str, list[str]] = {
+    "0": ["████", "█  █", "█  █", "█  █", "████"],
+    "1": ["  ██", " █ █", "   █", "   █", "   █"],
+    "2": ["████", "   █", "████", "█   ", "████"],
+    "3": ["████", "   █", "████", "   █", "████"],
+    "4": ["█  █", "█  █", "████", "   █", "   █"],
+    "5": ["████", "█   ", "████", "   █", "████"],
+    "6": ["████", "█   ", "████", "█  █", "████"],
+    "7": ["████", "   █", "  █ ", " █  ", " █  "],
+    "8": ["████", "█  █", "████", "█  █", "████"],
+    "9": ["████", "█  █", "████", "   █", "████"],
+    ".": ["    ", "    ", "    ", "    ", " ██ "],
+    ":": ["    ", " ██ ", "    ", " ██ ", "    "],
+    "+": ["    ", " █  ", "███ ", " █  ", "    "],
+    " ": ["    ", "    ", "    ", "    ", "    "],
+}
+
 
 class TimerDisplay(Widget):
     """A large, centrally-placed timer label that reacts to timer state.
 
-    The colour class (idle / holding / ready / running / stopped) is set
-    via a CSS class on the ``#timer-display`` label so the TCSS file
-    controls colours without any Python colour logic.
+    Renders digits using a high-fidelity 5x4 block character font.
     """
 
     DEFAULT_CSS = ""  # Styles come from app.tcss
@@ -56,9 +72,13 @@ class TimerDisplay(Widget):
     # ── Internal helpers ──────────────────────────────────────────────────
 
     def _render_time(self) -> str:
-        """Return the time string padded for visual centering."""
-        # Pad with spaces for visual weight
-        return f"  {self.time_str}  "
+        """Return the time string rendered in 5-line-high block text."""
+        lines = ["", "", "", "", ""]
+        for char in self.time_str:
+            glyph = _BLOCK_FONT.get(char, _BLOCK_FONT[" "])
+            for i in range(5):
+                lines[i] += glyph[i] + " "
+        return "\n".join(lines)
 
     def _refresh_label(self) -> None:
         """Re-render the label with updated text and CSS class."""
