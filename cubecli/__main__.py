@@ -14,6 +14,7 @@ def main() -> None:
         print(f"[cubecli] Failed to start: {exc}", file=sys.stderr)
         print("Try: pip install cubecli", file=sys.stderr)
         sys.exit(1)
+        return  # Prevent fall-through to CubeCLIApp() on Python 3.14+
 
     app = CubeCLIApp()
     app.run()
