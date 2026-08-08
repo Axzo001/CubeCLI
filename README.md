@@ -37,16 +37,27 @@ Most speedcubing timers live in your browser. CubeCLI lives in your terminal —
 
 **Requirements:** Python 3.11+
 
-```bash
-pip install cubecli
-```
-
-Or install from source (recommended for development):
+### Recommended (Virtual Environment)
+On modern Linux distros (Arch Linux, Fedora, Debian 12+, Ubuntu 23.04+) or macOS, Python environments are externally managed. Create a virtual environment first:
 
 ```bash
 git clone https://github.com/Axzo001/CubeCLI.git
 cd CubeCLI
+python3 -m venv venv
+source venv/bin/activate
 pip install -e ".[dev]"
+```
+
+### Alternative: Install via pipx (Global CLI tool)
+```bash
+pipx install .
+```
+
+### Alternative: Direct System User Install
+If you prefer installing directly into your user environment without a virtual environment:
+
+```bash
+pip install -e ".[dev]" --break-system-packages
 ```
 
 ---
@@ -318,6 +329,27 @@ MIT License — see [LICENSE](LICENSE) for details.
 - [Textual](https://github.com/Textualize/textual) — the TUI framework that makes this possible
 - [cubing.js](https://github.com/cubing/cubing.js) — protocol reference for smart cube integration
 - The WCA speedcubing community ❤️
+
+---
+
+## 💡 Troubleshooting Installation (PEP 668)
+
+If you see `error: externally-managed-environment` on Arch Linux / Fedora / Ubuntu / Debian:
+
+1. **Option A (Recommended):** Use a Python virtual environment:
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -e ".[dev]"
+   ```
+2. **Option B:** Install via `pipx`:
+   ```bash
+   pipx install .
+   ```
+3. **Option C:** User install with `--break-system-packages`:
+   ```bash
+   pip install -e ".[dev]" --break-system-packages
+   ```
 
 ---
 
